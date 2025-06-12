@@ -27,7 +27,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpHeaders headers = new HttpHeaders();
         return handleExceptionInternal(
                 e,
-                new CommonResponseDto<>(e.getServiceCode()),
+                new CommonResponseDto<>(e.getException()),
                 headers,
                 e.getStatus(),
                 request

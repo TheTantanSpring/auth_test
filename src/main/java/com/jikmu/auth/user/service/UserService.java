@@ -31,7 +31,7 @@ public class UserService {
         String password = passwordEncoder.encode(requstDto.getPassword());
 
         if(exitUser(requstDto)){
-            throw new IllegalArgumentException("이미 가입된 사용자입니다.");
+            throw new CustomApiException(BaseException.DUPLICATE_USER);
         }
 
         User user = requstDto.toEntity(requstDto, password);
@@ -41,10 +41,10 @@ public class UserService {
     public LoginResDto login(LoginReqDto requstDto) {
 
         User foundUser = userRepository.findByUsername(requstDto.getUsername())
-                .orElseThrow(() -> new CustomApiException(BaseException.INVALID_INPUT));
+                .orElseThrow(() -> new CustomApiException(BaseException.INVALID_LOGIN));
 
         if (!passwordEncoder.matches(requstDto.getPassword(), foundUser.getPassword())) {
-            throw new CustomApiException(BaseException.INVALID_INPUT);
+            throw new CustomApiException(BaseException.INVALID_LOGIN);
         }
 
         String accessToken = createAccessToken(foundUser);
@@ -55,9 +55,8 @@ public class UserService {
     public UserInfoResDto changeRole(String userName) {
 
         User foundUser = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new CustomApiException(BaseException.INVALID_INPUT));
+                .orElseThrow(() -> new CustomApiException(BaseException.USER_NOT_FOUND));
         foundUser.update(UserRoleEnum.ADMIN);
-        System.out.println(foundUser.getUserRole());
         userRepository.save(foundUser);
         return UserInfoResDto.of(foundUser);
     }

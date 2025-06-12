@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus;
 public class CustomApiException extends RuntimeException {
 
     private final HttpStatus status;
-    private final BaseException serviceCode;
+    private final BaseException exception;
 
-    public CustomApiException(BaseException serviceCode){
-        super(serviceCode.getMessage());
-        this.serviceCode = serviceCode;
-        this.status = serviceCode.getStatus();
+    public CustomApiException(BaseException exception){
+        super(exception.getMessage());
+        this.exception = exception;
+        this.status = exception.getStatus();
     }
 }

@@ -20,10 +20,13 @@ public class CommonResponseDto<T> {
     public CommonResponseDto(BaseException exception) {
         this.code = exception.getErrorCode();
         this.message = exception.getMessage();
+        this.status = exception.getStatus().value();
     }
 
     public CommonResponseDto(SuccessCode successCode, T result) {
+        this.code = successCode.getCode();
         this.message = successCode.getMessage();
+        this.status = successCode.getStatusCode().value();
         this.result = result;
     }
 }

@@ -48,16 +48,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             log.info("Authorization header: {}", authHeader);
 
             if (authHeader != null) {
+                authHeader = jwtUtil.substringToken(authHeader);
                 jwtUtil.validateToken(authHeader);
                 Claims claims = jwtUtil.getUserInfoFromToken(authHeader);
                 String username = claims.getSubject();
-                String role = claims.get("role", String.class);
+                String userRole = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                        new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole)));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("인증 성공: userId={}, role={}", username, role);
+                log.info("인증 성공: userId={}, role={}", username, userRole);
             } else {
                 log.warn("유효하지 않은 토큰 또는 토큰 없음");
             }
@@ -68,7 +69,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(e.getStatus().value());
             response.setContentType("application/json;charset=UTF-8");
 
-            CommonResponseDto<Object> errorResponse = new CommonResponseDto<>(e.getServiceCode());
+            CommonResponseDto<Object> errorResponse = new CommonResponseDto<>(e.getException());
 
             ObjectMapper objectMapper = new ObjectMapper();
             String json = objectMapper.writeValueAsString(errorResponse);

@@ -41,7 +41,7 @@ public class UserController {
 
     @PatchMapping("/admin/users/{userName}/roles")
     @Operation(summary = "관리자 권한 부여")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CommonResponseDto<UserInfoResDto>> assignRole(@PathVariable(name = "userName") String userName){
 
         UserInfoResDto responseDto = userService.changeRole(userName);
