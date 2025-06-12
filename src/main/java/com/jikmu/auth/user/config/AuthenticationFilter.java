@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jikmu.auth.jwt.JwtUtil;
 import global.CommonResponseDto;
 import global.config.BaseException;
+import global.exception.CustomApiException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -49,36 +50,36 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             if (authHeader != null) {
                 jwtUtil.validateToken(authHeader);
                 Claims claims = jwtUtil.getUserInfoFromToken(authHeader);
-                UUID userId = UUID.fromString(claims.getSubject());
+                String username = claims.getSubject();
                 String role = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                        new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("인증 성공: userId={}, role={}", userId, role);
+                log.info("인증 성공: userId={}, role={}", username, role);
             } else {
                 log.warn("유효하지 않은 토큰 또는 토큰 없음");
             }
 
             filterChain.doFilter(request, response);
-        }catch (Exception e) {
+        }catch (CustomApiException e) {
 
-//            response.setStatus(e.getStatus().value());
-//            response.setContentType("application/json;charset=UTF-8");
-//
-//            CommonResponse<Object> errorResponse = new CommonResponse<>(e.getServiceCode());
-//
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            String json = objectMapper.writeValueAsString(errorResponse);
-//            response.getWriter().write(json);
+            response.setStatus(e.getStatus().value());
+            response.setContentType("application/json;charset=UTF-8");
+
+            CommonResponseDto<Object> errorResponse = new CommonResponseDto<>(e.getServiceCode());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(errorResponse);
+            response.getWriter().write(json);
             log.error("JWT 인증 필터 처리 중 예외 발생", e);
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             response.setContentType("application/json;charset=UTF-8");
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(
+            objectMapper = new ObjectMapper();
+            json = objectMapper.writeValueAsString(
                     new CommonResponseDto<>(BaseException.INVALID_INPUT));
             response.getWriter().write(json);
         }
